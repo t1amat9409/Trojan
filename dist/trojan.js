@@ -1,8 +1,182 @@
 "use strict";
 
 var Trojan = Trojan || {};
+
+if(typeof define==='function' && define.amd) {
+	define( 'yaka', YAKA );
+} else if ( 'undefined' !== typeof exports && 'undefined' !== typeof module ) {
+	module.exports = YAKA;
+}
+
+// polyfills
+
+if ( self.requestAnimationFrame === undefined || self.cancelAnimationFrame === undefined ) {
+
+	// Missing in Android stock browser.
+
+	( function () {
+
+		var lastTime = 0;
+		var vendors = [ 'ms', 'moz', 'webkit', 'o' ];
+
+		for ( var x = 0; x < vendors.length && ! self.requestAnimationFrame; ++ x ) {
+
+			self.requestAnimationFrame = self[ vendors[ x ] + 'RequestAnimationFrame' ];
+			self.cancelAnimationFrame = self[ vendors[ x ] + 'CancelAnimationFrame' ] || self[ vendors[ x ] + 'CancelRequestAnimationFrame' ];
+
+		}
+
+		if ( self.requestAnimationFrame === undefined && self.setTimeout !== undefined ) {
+
+			self.requestAnimationFrame = function ( callback ) {
+
+				var currTime = Date.now(), timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
+				var id = self.setTimeout( function () {
+
+					callback( currTime + timeToCall );
+
+				}, timeToCall );
+				lastTime = currTime + timeToCall;
+				return id;
+
+			};
+
+		}
+
+		if ( self.cancelAnimationFrame === undefined && self.clearTimeout !== undefined ) {
+
+			self.cancelAnimationFrame = function ( id ) {
+
+				self.clearTimeout( id );
+
+			};
+
+		}
+
+	}() );
+
+}
+
+if ( Math.sign === undefined ) {
+
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
+
+	Math.sign = function ( x ) {
+
+		return ( x < 0 ) ? - 1 : ( x > 0 ) ? 1 : + x;
+
+	};
+
+}
+
+if ( Function.prototype.name === undefined && Object.defineProperty !== undefined ) {
+
+	// Missing in IE9-11.
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name
+
+	Object.defineProperty( Function.prototype, 'name', {
+
+		get: function () {
+
+			return this.toString().match( /^\s*function\s*(\S*)\s*\(/ )[ 1 ];
+
+		}
+
+	} );
+
+}
+
+// Document.querySelectorAll method
+// http://ajaxian.com/archives/creating-a-queryselector-for-ie-that-runs-at-native-speed
+// Needed for: IE7-
+if (!document.querySelectorAll) {
+  document.querySelectorAll = function(selectors) {
+    var style = document.createElement('style'), elements = [], element;
+    document.documentElement.firstChild.appendChild(style);
+    document._qsa = [];
+
+    style.styleSheet.cssText = selectors + '{x-qsa:expression(document._qsa && document._qsa.push(this))}';
+    window.scrollBy(0, 0);
+    style.parentNode.removeChild(style);
+
+    while (document._qsa.length) {
+      element = document._qsa.shift();
+      element.style.removeAttribute('x-qsa');
+      elements.push(element);
+    }
+    document._qsa = null;
+    return elements;
+  };
+}
+
+// Document.querySelector method
+// Needed for: IE7-
+if (!document.querySelector) {
+  document.querySelector = function(selectors) {
+    var elements = document.querySelectorAll(selectors);
+    return (elements.length) ? elements[0] : null;
+  };
+}
+
+// Document.getElementsByClassName method
+// Needed for: IE8-
+if (!document.getElementsByClassName) {
+  document.getElementsByClassName = function(classNames) {
+    classNames = String(classNames).replace(/^|\s+/g, '.');
+    return document.querySelectorAll(classNames);
+  };
+}
+
 Trojan.motto = "Give Muscles To Your Web";
 Trojan.version = 1;
+
+/**
+ *	@description
+ *	@link : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+ *		Request method uses Promises together with the old XMLHttpRequest to communicate with the backend.
+ *		It is also bundled with all header methods like "get","post","put","delete".
+ *
+ *	**************************************************************************************************************************
+ *	****																																																									****
+ *	****																											USAGE																												****
+ *	****																																																									****
+ *	**************************************************************************************************************************
+ *
+ *	var url = 'https://developer.mozilla.org/en-US/search.json';
+ *
+ *	@param : declare params, an object to parse to the server.
+ *
+ *	**************************************************************************************************************************
+ *	****																																																									****
+ *	****																											USAGE																												****
+ *	****																																																									****
+ *	**************************************************************************************************************************
+ *	var params = {
+ *	  'param1' : 'value1',
+ *	  'param2'     : 'value2'
+ *	};
+ *
+ *	**Putting all together**
+ *	var callbackObj = {
+ *	  success: function(data) {
+ *	    console.log(1, 'success', JSON.parse(data));
+ *	  },
+ *	  error: function(data) {
+ *	    console.log(2, 'error', JSON.parse(data));
+ *	  }
+ *	};
+ *	End instantiation
+ *	Run request
+ *	Trojan.Request(url)
+ *	.get(params)
+ *	.then(callbackObj.success)
+ *	.catch(callbackObj.error);
+ *
+ *	Executes the method call but an alternative way (1) to handle Promise Reject case
+ *	Trojan.Request(url)
+ *	.get(params)
+ *	.then(callbackObj.success, callbackObj.error);
+ **/
 
 Trojan.Request = function(url){
 	// A small example of object
