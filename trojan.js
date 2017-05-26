@@ -105,6 +105,7 @@ Trojan.style.prototype = {
 		var calls = {
 			pass : function(data){
 				that.code = data;
+				that.run();
 			},
 			fail : function(error){
 				alert(error);
@@ -112,6 +113,6 @@ Trojan.style.prototype = {
 		}
 		
 		Trojan.Request(url).get({}).then(calls.pass).catch(calls.fail);
-		return this.run();
+		return this;
 	}
 };
