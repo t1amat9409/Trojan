@@ -270,8 +270,13 @@ Trojan.style.prototype = {
 		return this; 
 	},
 	run : function(){
-		this.tag.innerHTML += this.code; 
-		document.querySelector("head").appendChild(this.tag);
+		if(document.querySelector("#"+this.tag.id)){
+			document.querySelector("#"+this.tag.id) = this.code;
+		} else{
+			this.tag.innerHTML += this.code; 
+			document.querySelector("head").appendChild(this.tag);
+		}
+		
 		return this; 
 	},
 	load : function(url){
