@@ -271,7 +271,7 @@ Trojan.style.prototype = {
 	},
 	run : function(){
 		if(document.querySelector("#"+this.tag.id)){
-			document.querySelector("#"+this.tag.id) = this.code;
+			document.querySelector("#"+this.tag.id).innerHTML = this.code;
 		} else{
 			this.tag.innerHTML += this.code; 
 			document.querySelector("head").appendChild(this.tag);
