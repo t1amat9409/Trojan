@@ -3,9 +3,9 @@
 var Trojan = Trojan || {};
 
 if(typeof define==='function' && define.amd) {
-	define( 'yaka', YAKA );
+	define( 'Trojan ', Trojan  );
 } else if ( 'undefined' !== typeof exports && 'undefined' !== typeof module ) {
-	module.exports = YAKA;
+	module.exports = Trojan ;
 }
 
 // polyfills
